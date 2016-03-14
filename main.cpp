@@ -39,14 +39,14 @@ typedef struct
 
 const KNIGHT_STEP_T KnightStepTbl [8] =
 {
-    {2,1},
-    {1,2},
-    {-1,2},
-    {-2,1},
-    {-2,-1},
-    {-1,-2},
-    {1,-2},
-    {2,-1}
+    {2,1}, //0
+    {1,2}, //1
+    {-1,2}, //2
+    {-2,1}, //3
+    {-2,-1}, //4
+    {-1,-2}, //5
+    {1,-2}, //6
+    {2,-1} //7
 
 };
 
@@ -72,6 +72,7 @@ int KnightsTour(int boardSize)
     ///Variables
     int board[8][8];
     memset(board, -1, (boardSize*boardSize*sizeof(int)));
+
     //int * permutationSequence = (int *) malloc(sizeof(int) * boardSize * boardSize);
 
 
@@ -79,24 +80,26 @@ int KnightsTour(int boardSize)
 
     int currentX = 0;
     int currentY = 0;
+
     int possibleMove = 0;
-    int revertMove = 0;
 
     bool everythingScanned = false;
 
     int knightsPlacedDown = 0;
 
+
+    board[0][0] = possibleMove;
+    knightsPlacedDown++;
+
+
     PrintBoard(boardSize, &board[0][0]);
 
     //Place down the first Knight
-    board[0][0] = 0;
-    knightsPlacedDown++;
-
     ///Functionality
     while(!everythingScanned)
     {
         ///Evaluate next place place down queen
-        for(; possibleMove < 8; possibleMove++)
+        for(;possibleMove < 8; possibleMove++)
         {
             if(MoveLegal(possibleMove, boardSize, &board[0][0], currentX, currentY))
             {
@@ -114,12 +117,13 @@ int KnightsTour(int boardSize)
                 int tempX = currentX + KnightStepTbl[board[currentX][currentY]].StepX;
                 int tempY = currentY + KnightStepTbl[board[currentX][currentY]].StepY;
 
+                board[currentX][currentY] = -1;
+
                 currentX = tempX;
                 currentY = tempY;
 
                 possibleMove = board[currentX][currentY];
 
-                board[currentX+KnightStepTbl[possibleMove].StepX][currentY+KnightStepTbl[possibleMove].StepY] = -1;
             } while(PushSequence(&possibleMove, boardSize));
 
 
@@ -133,7 +137,11 @@ int KnightsTour(int boardSize)
             currentX = currentX + KnightStepTbl[possibleMove].StepX;
             currentY = currentY + KnightStepTbl[possibleMove].StepY;
 
-            board[currentX][currentY] = ((possibleMove+4)%(boardSize-1));
+            int revertedMove = ((possibleMove+4)%(boardSize-1));
+
+            board[currentX][currentY] = revertedMove;
+
+
 
             PrintBoard(boardSize, &board[0][0]);
 
@@ -180,7 +188,7 @@ void PrintBoard(int boardSize, int* board)
         {
             if(1)
             {
-                if((*(board+(rowScanner*boardSize)+(columnScanner))) == -1)
+                if((*(board+(columnScanner*boardSize)+(rowScanner))) == -1)
                 {
                     cout << "x ";
                 }
