@@ -52,11 +52,129 @@ const KNIGHT_STEP_T KnightStepTbl [8] =
 
 ///PROTOTYPES
 //////////////////////////////////////////////////////////////////////
-int KnightsTour(int boardSize);
-bool MoveLegal(int moveType, int boardSize, int* board, int currentX, int currentY);
-void PrintBoard(int boardSize, int* board);
-bool PushSequence(int * possibleMove, int boardSize);
 
+
+void printBoard(int * board)
+{
+    for(int y = 0; y < 8; y++)
+    {
+        for(int x = 0; x < 8; x++)
+        {
+            if((*(board+(y*8)+x)) == -1)
+            {
+                printf("x ");
+            }
+            else
+            {
+                printf("o ");
+            }
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
+bool MoveLegal(int moveType, int* board, int currentX, int currentY)
+{
+    int offsetX = KnightStepTbl[moveType].StepX;
+    int offsetY = KnightStepTbl[moveType].StepY;
+
+    if(((*(board+((currentY+offsetY)*8)+(currentX+offsetX))) == -1) &&
+       ((currentX+offsetX) < 8) && ((currentX+offsetX) >= 0) &&
+       ((currentY+offsetY) < 8) && ((currentY+offsetY) >= 0))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+int KnightsTour(int boardSize)
+{
+    int board[8][8];
+    memset(board, -1, (boardSize*boardSize*sizeof(int)));
+
+    int successfulPermutations = 0;
+
+    int currentX = 0;
+    int currentY = 0;
+    int possibleMove = 0;
+
+    bool everythingScanned = false;
+
+    int knightsPlacedDown = 0;
+
+
+
+    board[currentX][currentY] = 8;
+    knightsPlacedDown++;
+
+    while(!everythingScanned)
+    {
+        //printBoard(&board[0][0]);
+
+
+        ///Evaluate next place place down queen
+        for(;possibleMove < 8; possibleMove++)
+        {
+            if(MoveLegal(possibleMove, &board[0][0], currentX, currentY))
+            {
+                break;
+            }
+        }
+
+        if(possibleMove == 8)
+        {
+            ///Remove Knight
+            int offsetX = KnightStepTbl[(board[currentY][currentX])].StepX;
+            int offsetY = KnightStepTbl[(board[currentY][currentX])].StepY;
+
+
+            int previousKnightX = currentX + offsetX;
+            int previousKnightY = currentY + offsetY;
+
+            if(previousKnightX == 0 && previousKnightY == 0)
+            {
+                printf("?");
+            }
+            possibleMove =  ((board[currentY][currentX]+4)%(boardSize));
+            possibleMove++;
+
+            board[currentY][currentX] = -1;
+
+            currentX = previousKnightX;
+            currentY = previousKnightY;
+
+
+            knightsPlacedDown--;
+
+        }
+        else
+        {
+            ///Add Knight
+            currentX = currentX + KnightStepTbl[possibleMove].StepX;
+            currentY = currentY + KnightStepTbl[possibleMove].StepY;
+
+            int revertedMove = ((possibleMove+4)%(boardSize));
+
+            board[currentY][currentX] = revertedMove;
+
+            possibleMove = 0;
+
+            knightsPlacedDown++;
+            if(knightsPlacedDown == 64)
+            {
+
+                successfulPermutations++;
+                printBoard(&board[0][0]);
+            }
+        }
+    }
+
+    return successfulPermutations;
+}
 
 int main(void)
 {
@@ -66,206 +184,3 @@ int main(void)
     return 0;
 }
 
-int KnightsTour(int boardSize)
-{
-
-    ///Variables
-    int board[8][8];
-    memset(board, -1, (boardSize*boardSize*sizeof(int)));
-
-    //int * permutationSequence = (int *) malloc(sizeof(int) * boardSize * boardSize);
-
-
-    int successfulPermutations = 0;
-
-    int currentX = 0;
-    int currentY = 0;
-
-    int possibleMove = 0;
-
-    bool everythingScanned = false;
-
-    int knightsPlacedDown = 0;
-
-
-    board[0][0] = possibleMove;
-    knightsPlacedDown++;
-
-
-    PrintBoard(boardSize, &board[0][0]);
-
-    //Place down the first Knight
-    ///Functionality
-    while(!everythingScanned)
-    {
-        ///Evaluate next place place down queen
-        for(;possibleMove < 8; possibleMove++)
-        {
-            if(MoveLegal(possibleMove, boardSize, &board[0][0], currentX, currentY))
-            {
-                break;
-            }
-        }
-
-        if(possibleMove == 8)
-        {
-            //RemoveKnight()
-            do
-            {
-                knightsPlacedDown--;
-
-                int tempX = currentX + KnightStepTbl[board[currentX][currentY]].StepX;
-                int tempY = currentY + KnightStepTbl[board[currentX][currentY]].StepY;
-
-                board[currentX][currentY] = -1;
-
-                currentX = tempX;
-                currentY = tempY;
-
-                possibleMove = board[currentX][currentY];
-
-            } while(PushSequence(&possibleMove, boardSize));
-
-
-        }
-        else
-        {
-            //Add Knight
-            ///!Put this all inside a function.
-            knightsPlacedDown++;
-
-            currentX = currentX + KnightStepTbl[possibleMove].StepX;
-            currentY = currentY + KnightStepTbl[possibleMove].StepY;
-
-            int revertedMove = ((possibleMove+4)%(boardSize-1));
-
-            board[currentX][currentY] = revertedMove;
-
-
-
-            PrintBoard(boardSize, &board[0][0]);
-
-            possibleMove = 0;
-
-            if(knightsPlacedDown == ((boardSize*boardSize)-1))
-            {
-                //Successful permutation found! :D
-                successfulPermutations++;
-
-                //RemoveKnight()
-                do
-                {
-                knightsPlacedDown--;
-
-                int tempX = currentX + KnightStepTbl[board[currentX][currentY]].StepX;
-                int tempY = currentY + KnightStepTbl[board[currentX][currentY]].StepY;
-
-                currentX = tempX;
-                currentY = tempY;
-
-                possibleMove = board[currentX][currentY];
-
-                board[currentX+KnightStepTbl[possibleMove].StepX][currentY+KnightStepTbl[possibleMove].StepY] = -1;
-            } while(PushSequence(&possibleMove, boardSize));
-            }
-        }
-    }
-
-    return successfulPermutations;
-}
-
-/*
-void addKnight()
-{
-}
-*/
-
-void PrintBoard(int boardSize, int* board)
-{
-    for(int rowScanner = 0; rowScanner < boardSize; rowScanner++)
-    {
-        for(int columnScanner = 0; columnScanner < boardSize; columnScanner++)
-        {
-            if(1)
-            {
-                if((*(board+(columnScanner*boardSize)+(rowScanner))) == -1)
-                {
-                    cout << "x ";
-                }
-                else
-                {
-                    cout << "o ";
-                }
-            }
-            else
-            {
-                printf("%3d ", (*(board+(rowScanner*boardSize)+(columnScanner))));
-            }
-
-
-        }
-        cout << "\n";
-    }
-    cout << "\n";
-}
-
-void removeKnight()
-{
-
-}
-
-//Function Comments
-/*/////////////////////////////////////////////////////////////////////
-* Name: bool PushSequence(int * possibleMove, int boardSize)
-*
-* Inputs:
-*       // Parameters //
-*               int * possibleMove          Address to the next possible move
-*                                           to scan for
-*
-*               int boardSize               The size of the board.
-*
-*
-*       // Variables //
-*               N/A
-*
-*
-* Outputs:
-*       // Return Value //
-*               Whether or not the latest knight needs to be removed.
-*
-* Description:
-*       Pushes the variable that determines the next move the program should
-*       scan from the latest knight that's placed down. If the variable is too
-*       large then the variable would return "true", else, "false".
-*
-*/
-bool PushSequence(int * possibleMove, int boardSize)
-{
-    (*(possibleMove))++;
-    if((*(possibleMove)) >= boardSize)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-bool MoveLegal(int moveType, int boardSize, int* board, int currentX, int currentY)
-{
-    int moveXOffset = KnightStepTbl[moveType].StepX;
-    int moveYOffset = KnightStepTbl[moveType].StepY;
-
-    if(((*(board+((currentX+moveXOffset)*boardSize)+((currentY+moveYOffset)))) != (-1)) ||
-        (currentX+moveXOffset >= boardSize) ||
-        (currentY+moveYOffset >= boardSize))
-    {
-        return false;
-    }
-    else
-    {
-        return true;
-    }
-}
